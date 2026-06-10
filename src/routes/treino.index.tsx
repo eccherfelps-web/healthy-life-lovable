@@ -10,7 +10,7 @@ import { Input } from "@/components/ui/input";
 import { Pencil, Plus, Trash2, Play, AlertCircle } from "lucide-react";
 import { toast } from "sonner";
 
-export const Route = createFileRoute("/treino")({
+export const Route = createFileRoute("/treino/")({
   head: () => ({ meta: [{ title: "Treino — PPL" }] }),
   component: TreinoPage,
 });

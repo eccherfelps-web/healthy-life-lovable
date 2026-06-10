@@ -9,19 +9,14 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
-import { Route as TreinoRouteImport } from './routes/treino'
 import { Route as PesoRouteImport } from './routes/peso'
 import { Route as PerfilRouteImport } from './routes/perfil'
 import { Route as NutricaoRouteImport } from './routes/nutricao'
 import { Route as AnalyticsRouteImport } from './routes/analytics'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as TreinoIndexRouteImport } from './routes/treino.index'
 import { Route as TreinoAtivoRouteImport } from './routes/treino.ativo'
 
-const TreinoRoute = TreinoRouteImport.update({
-  id: '/treino',
-  path: '/treino',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const PesoRoute = PesoRouteImport.update({
   id: '/peso',
   path: '/peso',
@@ -47,6 +42,11 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const TreinoIndexRoute = TreinoIndexRouteImport.update({
+  id: '/treino/',
+  path: '/treino/',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const TreinoAtivoRoute = TreinoAtivoRouteImport.update({
   id: '/ativo',
   path: '/ativo',
@@ -59,8 +59,8 @@ export interface FileRoutesByFullPath {
   '/nutricao': typeof NutricaoRoute
   '/perfil': typeof PerfilRoute
   '/peso': typeof PesoRoute
-  '/treino': typeof TreinoRouteWithChildren
   '/treino/ativo': typeof TreinoAtivoRoute
+  '/treino/': typeof TreinoIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -68,8 +68,8 @@ export interface FileRoutesByTo {
   '/nutricao': typeof NutricaoRoute
   '/perfil': typeof PerfilRoute
   '/peso': typeof PesoRoute
-  '/treino': typeof TreinoRouteWithChildren
   '/treino/ativo': typeof TreinoAtivoRoute
+  '/treino': typeof TreinoIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -78,8 +78,8 @@ export interface FileRoutesById {
   '/nutricao': typeof NutricaoRoute
   '/perfil': typeof PerfilRoute
   '/peso': typeof PesoRoute
-  '/treino': typeof TreinoRouteWithChildren
   '/treino/ativo': typeof TreinoAtivoRoute
+  '/treino/': typeof TreinoIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -89,8 +89,8 @@ export interface FileRouteTypes {
     | '/nutricao'
     | '/perfil'
     | '/peso'
-    | '/treino'
     | '/treino/ativo'
+    | '/treino/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -98,8 +98,8 @@ export interface FileRouteTypes {
     | '/nutricao'
     | '/perfil'
     | '/peso'
-    | '/treino'
     | '/treino/ativo'
+    | '/treino'
   id:
     | '__root__'
     | '/'
@@ -107,8 +107,8 @@ export interface FileRouteTypes {
     | '/nutricao'
     | '/perfil'
     | '/peso'
-    | '/treino'
     | '/treino/ativo'
+    | '/treino/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -117,18 +117,11 @@ export interface RootRouteChildren {
   NutricaoRoute: typeof NutricaoRoute
   PerfilRoute: typeof PerfilRoute
   PesoRoute: typeof PesoRoute
-  TreinoRoute: typeof TreinoRouteWithChildren
+  TreinoIndexRoute: typeof TreinoIndexRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/treino': {
-      id: '/treino'
-      path: '/treino'
-      fullPath: '/treino'
-      preLoaderRoute: typeof TreinoRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/peso': {
       id: '/peso'
       path: '/peso'
@@ -164,6 +157,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/treino/': {
+      id: '/treino/'
+      path: '/treino'
+      fullPath: '/treino/'
+      preLoaderRoute: typeof TreinoIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/treino/ativo': {
       id: '/treino/ativo'
       path: '/ativo'
@@ -174,25 +174,24 @@ declare module '@tanstack/react-router' {
   }
 }
 
-interface TreinoRouteChildren {
-  TreinoAtivoRoute: typeof TreinoAtivoRoute
-}
-
-const TreinoRouteChildren: TreinoRouteChildren = {
-  TreinoAtivoRoute: TreinoAtivoRoute,
-}
-
-const TreinoRouteWithChildren =
-  TreinoRoute._addFileChildren(TreinoRouteChildren)
-
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AnalyticsRoute: AnalyticsRoute,
   NutricaoRoute: NutricaoRoute,
   PerfilRoute: PerfilRoute,
   PesoRoute: PesoRoute,
-  TreinoRoute: TreinoRouteWithChildren,
+  TreinoIndexRoute: TreinoIndexRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}
